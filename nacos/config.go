@@ -98,3 +98,26 @@ func (c *config) GetConfig() (string, error) {
 	}
 	return client.GetConfig(c.Params)
 }
+
+func (c *config) Listen(handler func(content string, err error)) (func(), error) {
+	client, err := c.CreateClient()
+	if err != nil {
+		return nil, err
+	}
+	err = client.ListenConfig(vo.ConfigParam{
+		DataId: c.Params.DataId,
+		Group:  c.Params.Group,
+		OnChange: func(namespace, group, dataId, data string) {
+			handler(data, nil)
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return func() {
+		_ = client.CancelListenConfig(vo.ConfigParam{
+			DataId: c.Params.DataId,
+			Group:  c.Params.Group,
+		})
+	}, nil
+}
