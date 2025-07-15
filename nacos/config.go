@@ -1,6 +1,7 @@
 package nacos
 
 import (
+	"errors"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
@@ -8,6 +9,9 @@ import (
 	"time"
 )
 
+type NacosInterface interface {
+	GetConfig() (string, error)
+}
 type Option func(*config)
 type config struct {
 	Address      string
@@ -26,6 +30,18 @@ func WithServerConfig(address string, port uint64) Option {
 			Port:   port,
 		})
 	}
+}
+
+func NewNacosConfig(opts ...Option) (NacosInterface, error) {
+	cfg := &config{}
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+	if len(cfg.serverConfig) == 0 {
+		return nil, errors.New("服务器配置不能为空")
+	}
+	return cfg, nil
 }
 
 func WithNamespace(namespace string) Option {
