@@ -11,6 +11,7 @@ import (
 
 type NacosInterface interface {
 	GetConfig() (string, error)
+	Listen(func(string, error)) (func(), error)
 }
 type Option func(*config)
 type config struct {
